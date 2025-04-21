@@ -1,9 +1,10 @@
 import express from 'express';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cors from 'cors';
-import { getAllJobDescriptions, getJobDescriptionForEmail } from './modules/sheetMapping.js';
+import { getAllJobDescriptions, getJobDescriptionForEmail, getAllEmails } from './modules/sheetMapping.js';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,7 +28,7 @@ app.post('/api/save-content', async (req, res) => {
   }
 });
 
-// New endpoint to fetch all job descriptions from Google Sheet
+// Endpoint to fetch all job descriptions from Google Sheet
 app.get('/api/job-descriptions', async (req, res) => {
   try {
     const jobDescriptions = await getAllJobDescriptions();
@@ -38,7 +39,7 @@ app.get('/api/job-descriptions', async (req, res) => {
   }
 });
 
-// New endpoint to fetch a specific job description by email
+// Endpoint to fetch a specific job description by email
 app.get('/api/job-description/:email', async (req, res) => {
   try {
     const email = req.params.email;
@@ -47,6 +48,84 @@ app.get('/api/job-description/:email', async (req, res) => {
   } catch (error) {
     console.error('Error fetching job description:', error);
     res.status(500).json({ error: 'Failed to fetch job description' });
+  }
+});
+
+// New endpoint to regenerate email content using Email_Tailor.py script
+app.post('/api/regenerate-email', async (req, res) => {
+  try {
+    const { email, jobDescription } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required' });
+    }
+    
+    console.log(`Regenerating email for: ${email}`);
+    
+    // Create a temporary JSON file with the single recruiter details
+    const tempDataPath = join(dirname(__dirname), 'temp_recruiter.json');
+    const singleRecruiter = [{
+      "Name": email.split('@')[0], // Just use the email username as name if real name isn't available
+      "Email": email,
+      "Company": "Company", // Placeholder
+      "JobDescription": jobDescription
+    }];
+    
+    await writeFile(tempDataPath, JSON.stringify(singleRecruiter));
+    
+    // Run the Email_Tailor.py script with the temp file path as argument
+    const pythonProcess = spawn('python', [
+      join(dirname(__dirname), 'Email_Tailor_single.py'),
+      tempDataPath,
+      email
+    ]);
+    
+    let resultData = '';
+    let errorData = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      resultData += data.toString();
+      console.log(`Python stdout: ${data}`);
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString();
+      console.error(`Python stderr: ${data}`);
+    });
+    
+    await new Promise((resolve, reject) => {
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          console.error(`Python process exited with code ${code}`);
+          if (errorData) {
+            console.error(`Error output: ${errorData}`);
+          }
+          reject(new Error(`Python script exited with code ${code}`));
+        } else {
+          console.log(`Python process completed successfully`);
+          resolve();
+        }
+      });
+    });
+    
+    // Read the updated content from email_content_mapping.json
+    const emailContentPath = join(dirname(__dirname), 'email_content_mapping.json');
+    const emailContentRaw = await readFile(emailContentPath, 'utf8');
+    const emailContent = JSON.parse(emailContentRaw);
+    
+    // Get the regenerated content for the specific email
+    const regeneratedContent = emailContent[email];
+    
+    if (!regeneratedContent) {
+      throw new Error(`No content generated for email: ${email}`);
+    }
+    
+    // Return the regenerated content
+    res.json({ content: regeneratedContent });
+    
+  } catch (error) {
+    console.error('Error regenerating email:', error);
+    res.status(500).json({ error: 'Failed to regenerate email content' });
   }
 });
 

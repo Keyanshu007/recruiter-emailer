@@ -8,6 +8,7 @@ function App() {
   const [saveStatus, setSaveStatus] = useState('');
   const [jobDescriptions, setJobDescriptions] = useState({});
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState({});
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -110,6 +111,50 @@ function App() {
     );
   };
 
+  const handleRegenerate = async (id, email) => {
+    try {
+      // Set regenerating status for this email
+      setRegenerating(prev => ({ ...prev, [email]: true }));
+      
+      // Call the backend API to regenerate the content
+      const response = await fetch('http://localhost:3001/api/regenerate-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email, 
+          jobDescription: jobDescriptions[email] || '' 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to regenerate email content');
+      }
+      
+      const result = await response.json();
+      
+      // Update the row with the regenerated content
+      setRows((prevRows) =>
+        prevRows.map((row) => (row.id === id ? { ...row, text: result.content } : row))
+      );
+      
+      setSaveStatus('Email regenerated successfully!');
+      
+      // Clear the success message after 3 seconds
+      setTimeout(() => setSaveStatus(''), 3000);
+    } catch (error) {
+      console.error('Error regenerating email:', error);
+      setSaveStatus('Error regenerating email');
+      
+      // Clear the error message after 3 seconds
+      setTimeout(() => setSaveStatus(''), 3000);
+    } finally {
+      // Clear regenerating status
+      setRegenerating(prev => ({ ...prev, [email]: false }));
+    }
+  };
+
   return (
     <div className="app-container">
       {saveStatus && (
@@ -138,6 +183,13 @@ function App() {
             <div className="button-container">
               <button onClick={() => handleUndo(row.id)}>Undo</button>
               <button onClick={handleSave}>Save</button>
+              <button 
+                className="regenerate-button" 
+                onClick={() => handleRegenerate(row.id, row.email)}
+                disabled={regenerating[row.email]}
+              >
+                {regenerating[row.email] ? 'Regenerating...' : 'Regenerate Email'}
+              </button>
             </div>
           </div>
         ))

@@ -113,3 +113,12 @@ export async function getJobDescriptionForEmail(email) {
   const descriptions = await getAllJobDescriptions();
   return descriptions[email] || "";
 }
+
+/**
+ * Gets all email addresses from the Google Sheet
+ * @returns {Array} - Array of email addresses
+ */
+export async function getAllEmails() {
+  const jobDescriptions = await getAllJobDescriptions();
+  return Object.keys(jobDescriptions);
+}

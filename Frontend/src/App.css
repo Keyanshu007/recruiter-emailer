@@ -120,6 +120,7 @@
 .button-container {
   display: flex;
   justify-content: space-between;
+  gap: 0.5rem; /* Add spacing between buttons */
 }
 
 button {
@@ -141,6 +142,17 @@ button:nth-child(1) {
 
 button:nth-child(2) {
   background-color: #90ee90; /* Light green tint */
+}
+
+/* Regenerate button styling */
+.regenerate-button {
+  border: 1px solid #6495ed; /* Blue border */
+  background-color: #e6f0ff; /* Light blue tint */
+  color: #0066cc;
+}
+
+.regenerate-button:hover {
+  background-color: #cce0ff; /* Slightly darker blue on hover */
 }
 
 .save-status {
