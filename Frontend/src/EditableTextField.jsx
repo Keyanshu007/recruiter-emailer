@@ -4,8 +4,17 @@ const EditableTextField = ({ content, onChange }) => {
   const editorRef = useRef(null);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== content) {
-      editorRef.current.innerHTML = content;
+    if (editorRef.current) {
+      // Process content to ensure proper HTML formatting
+      let processedContent = content;
+      
+      // Ensure <br> tags are properly rendered
+      processedContent = processedContent.replace(/\n/g, '<br>');
+      
+      // Set the HTML content only if it has changed to avoid cursor position issues
+      if (editorRef.current.innerHTML !== processedContent) {
+        editorRef.current.innerHTML = processedContent;
+      }
     }
   }, [content]);
 
@@ -21,6 +30,17 @@ const EditableTextField = ({ content, onChange }) => {
       contentEditable
       onInput={handleInput}
       suppressContentEditableWarning={true}
+      style={{
+        textAlign: 'left',
+        padding: '10px 15px',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+        lineHeight: '1.6',
+        fontWeight: 'normal',
+        color: '#333333'
+      }}
     />
   );
 };

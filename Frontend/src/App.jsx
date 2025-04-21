@@ -9,48 +9,77 @@ function App() {
   const [jobDescriptions, setJobDescriptions] = useState({});
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState({});
+  const [savedEmails, setSavedEmails] = useState(new Set());
+  const [saving, setSaving] = useState({});
+
+  // Function to process email content - remove greeting and signature
+  const processEmailContent = (content) => {
+    if (!content) return '';
+    
+    let processedContent = content;
+    
+    // Remove "Dear [Name]," at the beginning if present
+    processedContent = processedContent.replace(/^\s*Dear\s+[^,<]*[,<][^<]*(<br>|<br\s*\/?>)?/i, '');
+    
+    // Remove everything from "Regards" (or variations) to the end
+    const regardsVariations = ['Regards', 'Best regards', 'Sincerely', 'Best'];
+    for (const variant of regardsVariations) {
+      const regardsRegex = new RegExp(`${variant}[^<]*(<br>|<br\\s*\/?>|$).*$`, 'i');
+      processedContent = processedContent.replace(regardsRegex, '');
+    }
+    
+    // Clean up any extra spaces or line breaks at the beginning or end
+    processedContent = processedContent.trim();
+    
+    return processedContent;
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
       try {
-        // Fetch job descriptions from the server
         const descResponse = await fetch('http://localhost:3001/api/job-descriptions');
         if (!descResponse.ok) {
           throw new Error('Failed to fetch job descriptions');
         }
         const jobDescs = await descResponse.json();
         setJobDescriptions(jobDescs);
-        
-        // Get all email addresses from the job descriptions
+
         const sheetEmails = Object.keys(jobDescs);
-        
-        // Try to fetch the updated content for email templates
+
         let emailTemplates = {};
         try {
           const response = await fetch('../email_content_mapping_updated.json');
           emailTemplates = await response.json();
-          
-          // Check if the updated content is empty or invalid
+
           if (!emailTemplates || Object.keys(emailTemplates).length === 0) {
             throw new Error('Updated content is empty');
           }
         } catch (error) {
-          // If there's any error reading the updated file, use the original content
           console.log('Using original content due to:', error.message);
           emailTemplates = originalEmailContent;
         }
-        
-        // Create rows based on all emails from the sheet
-        const formattedRows = sheetEmails.map((email, index) => ({
-          id: index + 1,
-          email,
-          // Use template if available, otherwise use a default template or empty string
-          text: emailTemplates[email] || emailTemplates[Object.keys(emailTemplates)[0]] || '',
-          // Include job description
-          jobDescription: jobDescs[email] || ''
-        }));
-        
+
+        const templateEmails = Object.keys(emailTemplates);
+        const allEmails = [...new Set([...sheetEmails, ...templateEmails])];
+
+        console.log(`Total emails found: ${allEmails.length} (Sheet: ${sheetEmails.length}, Templates: ${templateEmails.length})`);
+
+        const formattedRows = allEmails.map((email, index) => {
+          // Get the raw email content
+          let rawEmailContent = emailTemplates[email] || emailTemplates[Object.keys(emailTemplates)[0]] || '';
+          
+          // Process the email content to remove greeting and signature
+          const processedContent = processEmailContent(rawEmailContent);
+          
+          return {
+            id: index + 1,
+            email,
+            text: processedContent,
+            jobDescription: jobDescs[email] || ''
+          };
+        });
+
         setRows(formattedRows);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -68,40 +97,62 @@ function App() {
         row.id === id ? { ...row, text: originalEmailContent[row.email] } : row
       )
     );
+
+    setRows(prevRows => {
+      const row = prevRows.find(r => r.id === id);
+      if (row) {
+        const newSavedEmails = new Set(savedEmails);
+        newSavedEmails.delete(row.email);
+        setSavedEmails(newSavedEmails);
+      }
+      return prevRows;
+    });
   };
 
-  const handleSave = async () => {
-    setSaveStatus('Saving...');
-    const jsonData = rows.reduce((acc, row) => {
-      acc[row.email] = row.text;
-      return acc;
-    }, {});
+  const handleSaveEmail = async (id, email, content) => {
+    setSaving(prev => ({ ...prev, [email]: true }));
+    const jsonData = { [email]: content };
 
     try {
-      const response = await fetch('http://localhost:3001/api/save-content', {
+      let existingContent = {};
+      try {
+        const response = await fetch('../email_content_mapping_updated.json');
+        existingContent = await response.json();
+      } catch (error) {
+        console.log('No existing content or error reading file:', error.message);
+      }
+
+      const mergedContent = { ...existingContent, ...jsonData };
+
+      const saveResponse = await fetch('http://localhost:3001/api/save-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(jsonData),
+        body: JSON.stringify(mergedContent),
       });
-      
-      if (!response.ok) {
+
+      if (!saveResponse.ok) {
         throw new Error('Failed to save content');
       }
-      
-      const result = await response.json();
-      console.log('Content saved to updated JSON file:', result);
-      setSaveStatus('Saved successfully!');
 
-      // Clear the success message after 3 seconds
+      const result = await saveResponse.json();
+      console.log(`Email content saved for ${email}:`, result);
+
+      const newSavedEmails = new Set(savedEmails);
+      newSavedEmails.add(email);
+      setSavedEmails(newSavedEmails);
+
+      setSaveStatus(`${email} saved successfully!`);
+
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
-      console.error('Error saving content:', error);
-      setSaveStatus('Error saving content');
-      
-      // Clear the error message after 3 seconds
+      console.error(`Error saving email ${email}:`, error);
+      setSaveStatus(`Error saving ${email}`);
+
       setTimeout(() => setSaveStatus(''), 3000);
+    } finally {
+      setSaving(prev => ({ ...prev, [email]: false }));
     }
   };
 
@@ -109,48 +160,56 @@ function App() {
     setRows((prevRows) =>
       prevRows.map((row) => (row.id === id ? { ...row, text: newText } : row))
     );
+
+    setRows(prevRows => {
+      const row = prevRows.find(r => r.id === id);
+      if (row && savedEmails.has(row.email)) {
+        const newSavedEmails = new Set(savedEmails);
+        newSavedEmails.delete(row.email);
+        setSavedEmails(newSavedEmails);
+      }
+      return prevRows;
+    });
   };
 
   const handleRegenerate = async (id, email) => {
     try {
-      // Set regenerating status for this email
       setRegenerating(prev => ({ ...prev, [email]: true }));
-      
-      // Call the backend API to regenerate the content
+
       const response = await fetch('http://localhost:3001/api/regenerate-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email, 
-          jobDescription: jobDescriptions[email] || '' 
+        body: JSON.stringify({
+          email,
+          jobDescription: jobDescriptions[email] || ''
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to regenerate email content');
       }
-      
+
       const result = await response.json();
-      
-      // Update the row with the regenerated content
+
       setRows((prevRows) =>
         prevRows.map((row) => (row.id === id ? { ...row, text: result.content } : row))
       );
-      
+
       setSaveStatus('Email regenerated successfully!');
-      
-      // Clear the success message after 3 seconds
+
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
       console.error('Error regenerating email:', error);
       setSaveStatus('Error regenerating email');
-      
-      // Clear the error message after 3 seconds
+
       setTimeout(() => setSaveStatus(''), 3000);
     } finally {
-      // Clear regenerating status
+      const newSavedEmails = new Set(savedEmails);
+      newSavedEmails.delete(email);
+      setSavedEmails(newSavedEmails);
+
       setRegenerating(prev => ({ ...prev, [email]: false }));
     }
   };
@@ -169,10 +228,26 @@ function App() {
           <div key={row.id} className="row">
             <p>{row.email}</p>
             <div className="text-field-container">
-              <EditableTextField 
-                content={row.text}
-                onChange={(newText) => handleTextChange(row.id, newText)}
-              />
+              {savedEmails.has(row.email) ? (
+                <div className="text-field saved-content">
+                  <p className="saved-message">Content saved successfully!</p>
+                  <button
+                    className="edit-again-button"
+                    onClick={() => {
+                      const newSavedEmails = new Set(savedEmails);
+                      newSavedEmails.delete(row.email);
+                      setSavedEmails(newSavedEmails);
+                    }}
+                  >
+                    Edit Again
+                  </button>
+                </div>
+              ) : (
+                <EditableTextField
+                  content={row.text}
+                  onChange={(newText) => handleTextChange(row.id, newText)}
+                />
+              )}
               <textarea
                 className="text-field job-description"
                 value={jobDescriptions[row.email] || ""}
@@ -182,7 +257,12 @@ function App() {
             </div>
             <div className="button-container">
               <button onClick={() => handleUndo(row.id)}>Undo</button>
-              <button onClick={handleSave}>Save</button>
+              <button 
+                onClick={() => handleSaveEmail(row.id, row.email, row.text)}
+                disabled={saving[row.email]}
+              >
+                {saving[row.email] ? 'Saving...' : 'Save'}
+              </button>
               <button 
                 className="regenerate-button" 
                 onClick={() => handleRegenerate(row.id, row.email)}

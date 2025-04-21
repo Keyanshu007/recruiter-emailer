@@ -87,19 +87,30 @@
   max-height: calc(100vh - 20px); /* Prevent the text field from exceeding the viewport height */
   overflow-y: auto; /* Allow scrolling within the text field */
   background-color: #fff; /* Ensure a white background for readability */
+  text-align: left; /* Ensure text is left-aligned */
+  font-family: Arial, sans-serif; /* Use a standard email font */
+  line-height: 1.5; /* Improve readability with better line spacing */
 }
 
 /* Added styles for rendering HTML content inside the text field */
 .text-field[contenteditable="true"] {
   white-space: pre-wrap; /* Preserve whitespace and line breaks */
   word-wrap: break-word; /* Break long words */
+  text-align: left; /* Ensure content is left-aligned */
 }
 
-/* Added a specific style for the content rendered from dataEmailer */
+/* Style for email content rendered in the editable field */
 .text-field[contenteditable="true"] p {
-  text-align: left; /* Align text to the left */
-  margin: 0; /* Remove default margins */
+  margin: 0 0 1em 0; /* Add paragraph spacing like in emails */
   padding: 0; /* Remove default padding */
+  text-align: left; /* Ensure paragraphs are left-aligned */
+}
+
+/* Style for breaks in email content */
+.text-field[contenteditable="true"] br {
+  display: block; /* Ensure line breaks work properly */
+  content: ""; /* Required for some browsers */
+  margin-top: 0.5em; /* Add spacing between paragraphs */
 }
 
 /* Added a specific rule for the first text field to prevent it from going outside the scrollable area */
@@ -180,4 +191,37 @@ button:nth-child(2) {
   0% { opacity: 1; }
   70% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* Styling for the saved content message that replaces the text box */
+.saved-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f8ff; /* Light blue background */
+  border: 1px solid #4caf50; /* Green border to indicate success */
+  text-align: center;
+}
+
+.saved-message {
+  font-size: 16px;
+  color: #4caf50;
+  font-weight: 500;
+  margin: 0 0 15px 0;
+}
+
+.edit-again-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.edit-again-button:hover {
+  background-color: #45a049;
 }
