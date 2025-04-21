@@ -83,7 +83,7 @@ function cleanEmailContent(content) {
   return content.trim();
 }
 
-// Function to format the email content with proper signature to avoid the "..." separator
+// Function to format the email content with proper signature to avoid Gmail detection issues
 function formatEmailWithSignature(name, content, isCustom) {
   let emailBody;
   
@@ -94,14 +94,40 @@ function formatEmailWithSignature(name, content, isCustom) {
     emailBody = content;
   }
   
-  // Format with proper HTML to avoid the "..." separator
-  return `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-  <p>Dear ${name},</p>
-  <p>${emailBody.replace(/<br><br>/g, '</p><p>')}</p>
-  <p>Regards,<br>
-  Keyanshu Gariba | +1 (857) 492-8869 | <a href="https://www.linkedin.com/in/keyanshu/">https://www.linkedin.com/in/keyanshu/</a><br>
- </p>
-</div>`;
+  // Format with proper HTML to avoid Gmail signature detection
+  // Using a table layout and specific styling to prevent signature detection
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td>
+        <div style="margin-bottom: 10px;">Dear ${name},</div>
+        
+        <div style="margin-bottom: 20px;">${emailBody.replace(/<br><br>/g, '</div><div style="margin-bottom: 20px;">')}</div>
+        
+        <!-- This non-breaking space helps prevent Gmail from detecting the signature -->
+        <div style="margin-top: 10px;">&nbsp;</div>
+        
+        <!-- Signature with non-standard formatting to avoid Gmail's signature detection -->
+        <div style="margin-top: 15px;">
+          <span style="display: inline-block;">Regards,</span>
+        </div>
+        <div style="margin-top: 5px;">
+          <span style="display: inline-block; font-weight: 500;">Keyanshu Gariba</span> |
+          <span style="display: inline-block;">+1 (857) 492-8869</span> |
+          <a href="https://www.linkedin.com/in/keyanshu/" style="color: #0077B5; text-decoration: underline;">LinkedIn Profile</a>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 // New function to load recruiters from Sheet1 in Google Sheets
