@@ -11,6 +11,7 @@ function App() {
   const [regenerating, setRegenerating] = useState({});
   const [savedEmails, setSavedEmails] = useState(new Set());
   const [saving, setSaving] = useState({});
+  const [sendingEmails, setSendingEmails] = useState(false);
 
   // Function to process email content - remove greeting and signature
   const processEmailContent = (content) => {
@@ -196,6 +197,59 @@ function App() {
     }
   };
 
+  const handleSendAllEmails = async () => {
+    // First save all emails
+    setSaveStatus('Saving all emails before sending...');
+    setSendingEmails(true);
+    
+    try {
+      // Create a JSON object with all emails
+      const jsonData = rows.reduce((acc, row) => {
+        acc[row.email] = row.text;
+        return acc;
+      }, {});
+      
+      // Save all emails first
+      const saveResponse = await fetch('http://localhost:3001/api/save-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData),
+      });
+      
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save email content');
+      }
+      
+      // Now send all emails
+      setSaveStatus('Sending emails...');
+      const sendResponse = await fetch('http://localhost:3001/api/send-emails', {
+        method: 'POST',
+      });
+      
+      if (!sendResponse.ok) {
+        throw new Error('Failed to send emails');
+      }
+      
+      const result = await sendResponse.json();
+      setSaveStatus(`${result.message}`);
+      
+      // Mark all emails as saved
+      const newSavedEmails = new Set([...savedEmails]);
+      rows.forEach(row => newSavedEmails.add(row.email));
+      setSavedEmails(newSavedEmails);
+      
+    } catch (error) {
+      console.error('Error in send emails process:', error);
+      setSaveStatus(`Error: ${error.message}`);
+    } finally {
+      setSendingEmails(false);
+      // Clear the status message after 5 seconds
+      setTimeout(() => setSaveStatus(''), 5000);
+    }
+  };
+
   return (
     <div className="app-container">
       {saveStatus && (
@@ -203,58 +257,73 @@ function App() {
           {saveStatus}
         </div>
       )}
+      
       {loading ? (
         <div className="loading">Loading email data...</div>
       ) : rows.length > 0 ? (
-        rows.map((row) => (
-          <div key={row.id} className="row">
-            <p>{row.email}</p>
-            <div className="text-field-container">
-              {savedEmails.has(row.email) ? (
-                <div className="text-field saved-content">
-                  <p className="saved-message">Content saved successfully!</p>
-                  <button
-                    className="edit-again-button"
-                    onClick={() => {
-                      const newSavedEmails = new Set(savedEmails);
-                      newSavedEmails.delete(row.email);
-                      setSavedEmails(newSavedEmails);
-                    }}
-                  >
-                    Edit Again
-                  </button>
-                </div>
-              ) : (
-                <EditableTextField
-                  content={row.text}
-                  onChange={(newText) => handleTextChange(row.id, newText)}
+        <>
+          {rows.map((row) => (
+            <div key={row.id} className="row">
+              <p>{row.email}</p>
+              <div className="text-field-container">
+                {savedEmails.has(row.email) ? (
+                  <div className="text-field saved-content">
+                    <p className="saved-message">Content saved successfully!</p>
+                    <button
+                      className="edit-again-button"
+                      onClick={() => {
+                        const newSavedEmails = new Set(savedEmails);
+                        newSavedEmails.delete(row.email);
+                        setSavedEmails(newSavedEmails);
+                      }}
+                    >
+                      Edit Again
+                    </button>
+                  </div>
+                ) : (
+                  <EditableTextField
+                    content={row.text}
+                    onChange={(newText) => handleTextChange(row.id, newText)}
+                  />
+                )}
+                <textarea
+                  className="text-field job-description"
+                  value={jobDescriptions[row.email] || ""}
+                  placeholder="Job description will appear here..."
+                  readOnly
                 />
-              )}
-              <textarea
-                className="text-field job-description"
-                value={jobDescriptions[row.email] || ""}
-                placeholder="Job description will appear here..."
-                readOnly
-              />
+              </div>
+              <div className="button-container">
+                <button 
+                  onClick={() => handleSaveEmail(row.id, row.email, row.text)}
+                  disabled={saving[row.email]}
+                  className="save-button"
+                >
+                  {saving[row.email] ? 'Saving...' : 'Save'}
+                </button>
+                <button 
+                  className="regenerate-button" 
+                  onClick={() => handleRegenerate(row.id, row.email)}
+                  disabled={regenerating[row.email]}
+                >
+                  {regenerating[row.email] ? 'Regenerating...' : 'Regenerate Email'}
+                </button>
+              </div>
             </div>
-            <div className="button-container">
-              <button 
-                onClick={() => handleSaveEmail(row.id, row.email, row.text)}
-                disabled={saving[row.email]}
-                className="save-button"
-              >
-                {saving[row.email] ? 'Saving...' : 'Save'}
-              </button>
-              <button 
-                className="regenerate-button" 
-                onClick={() => handleRegenerate(row.id, row.email)}
-                disabled={regenerating[row.email]}
-              >
-                {regenerating[row.email] ? 'Regenerating...' : 'Regenerate Email'}
-              </button>
-            </div>
+          ))}
+          
+          {/* Send All Emails button at the bottom after emails are loaded */}
+          <div className="send-all-container bottom-position">
+            <button 
+              className="send-all-button"
+              onClick={handleSendAllEmails}
+              disabled={sendingEmails || rows.length === 0}
+            >
+              {sendingEmails ? 'Sending Emails...' : 'Send All Emails'}
+            </button>
+            <p className="send-info">This will save all emails and send them to recipients</p>
           </div>
-        ))
+        </>
       ) : (
         <div className="no-data">No emails found. Please check your Google Sheet.</div>
       )}

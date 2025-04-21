@@ -129,6 +129,55 @@ app.post('/api/regenerate-email', async (req, res) => {
   }
 });
 
+// New endpoint to send all emails by running the sendEmails.js script
+app.post('/api/send-emails', async (req, res) => {
+  try {
+    console.log('Starting email sending process...');
+    
+    // Execute the sendEmails.js script with the absolute path
+    const sendEmailsPath = 'C:\\Users\\keyan\\OneDrive\\Documents\\recruiter-emailer\\sendEmails.js';
+    console.log(`Attempting to execute: node ${sendEmailsPath}`);
+    
+    const nodeProcess = spawn('node', [sendEmailsPath]);
+    
+    let resultData = '';
+    let errorData = '';
+    
+    nodeProcess.stdout.on('data', (data) => {
+      resultData += data.toString();
+      console.log(`Send emails stdout: ${data}`);
+    });
+    
+    nodeProcess.stderr.on('data', (data) => {
+      errorData += data.toString();
+      console.error(`Send emails stderr: ${data}`);
+    });
+    
+    // Allow the process to start but don't wait for it to complete
+    // since it might run for a long time sending multiple emails
+    res.json({ 
+      message: 'Email sending process started successfully! This may take some time to complete.',
+      success: true 
+    });
+    
+    // Log when the process completes (but don't block the response)
+    nodeProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`Email sending process exited with code ${code}, Error: ${errorData}`);
+      } else {
+        console.log('Email sending process completed successfully');
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error starting email sending process:', error);
+    res.status(500).json({ 
+      error: 'Failed to start email sending process',
+      message: error.message
+    });
+  }
+});
+
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
