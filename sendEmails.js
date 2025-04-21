@@ -276,14 +276,27 @@ I would greatly appreciate your consideration for any open Software Development 
   }
 }
 
-// Send emails to all recruiters
-async function sendAllEmails() {
-  const sentEmails = await loadSentEmails();
-  const recruiters = await loadRecruitersFromSheet();
-  const tailoredEmails = loadTailoredEmailContent();
-  
-  for (let i = 0; i < recruiters.length; i++) {
-    await sendEmail(recruiters[i], i + 1, sentEmails, tailoredEmails); // Adjust for 0-based index
+// Function to clear the email_content_mapping_updated.json file
+function clearEmailContentFile() {
+  try {
+    // Try both possible paths to the file
+    const filePath = path.join(__dirname, 'Frontend', 'email_content_mapping_updated.json');
+    const altPath = 'C:\\Users\\keyan\\OneDrive\\Documents\\recruiter-emailer\\Frontend\\email_content_mapping_updated.json';
+    
+    // Check which path exists and clear that file
+    if (fs.existsSync(filePath)) {
+      console.log(`Clearing email content file at: ${filePath}`);
+      fs.writeFileSync(filePath, JSON.stringify({}), 'utf8');
+      console.log('Email content file has been cleared successfully.');
+    } else if (fs.existsSync(altPath)) {
+      console.log(`Clearing email content file at alternative path: ${altPath}`);
+      fs.writeFileSync(altPath, JSON.stringify({}), 'utf8');
+      console.log('Email content file has been cleared successfully.');
+    } else {
+      console.log('No email content file found to clear.');
+    }
+  } catch (error) {
+    console.error('Error clearing email content file:', error);
   }
 }
 
@@ -306,6 +319,10 @@ async function sendEmailsInBatches() {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
+  
+  // After all emails are sent, clear the email content file
+  console.log('All emails have been sent. Clearing email content file...');
+  clearEmailContentFile();
 }
 
 // Replace the call to sendAllEmails with sendEmailsInBatches
