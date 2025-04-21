@@ -7,55 +7,58 @@ function App() {
   const [rows, setRows] = useState([]);
   const [saveStatus, setSaveStatus] = useState('');
   const [jobDescriptions, setJobDescriptions] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initializeContent = async () => {
+    const fetchAllData = async () => {
+      setLoading(true);
       try {
-        // Try to fetch the updated content first
-        const response = await fetch('../email_content_mapping_updated.json');
-        const updatedContent = await response.json();
-        
-        // Check if the updated content is empty or invalid
-        if (!updatedContent || Object.keys(updatedContent).length === 0) {
-          throw new Error('Updated content is empty');
-        }
-
-        initializeRows(updatedContent);
-      } catch (error) {
-        // If there's any error reading the updated file, use the original content
-        console.log('Using original content due to:', error.message);
-        initializeRows(originalEmailContent);
-      }
-    };
-
-    const initializeRows = (content) => {
-      const emails = Object.keys(content);
-      setRows(
-        emails.map((email, index) => ({ 
-          id: index + 1, 
-          email, 
-          text: content[email],
-          jobDescription: '' // Initialize with empty job description
-        }))
-      );
-    };
-
-    // Fetch job descriptions from the server
-    const fetchJobDescriptions = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/job-descriptions');
-        if (!response.ok) {
+        // Fetch job descriptions from the server
+        const descResponse = await fetch('http://localhost:3001/api/job-descriptions');
+        if (!descResponse.ok) {
           throw new Error('Failed to fetch job descriptions');
         }
-        const data = await response.json();
-        setJobDescriptions(data);
+        const jobDescs = await descResponse.json();
+        setJobDescriptions(jobDescs);
+        
+        // Get all email addresses from the job descriptions
+        const sheetEmails = Object.keys(jobDescs);
+        
+        // Try to fetch the updated content for email templates
+        let emailTemplates = {};
+        try {
+          const response = await fetch('../email_content_mapping_updated.json');
+          emailTemplates = await response.json();
+          
+          // Check if the updated content is empty or invalid
+          if (!emailTemplates || Object.keys(emailTemplates).length === 0) {
+            throw new Error('Updated content is empty');
+          }
+        } catch (error) {
+          // If there's any error reading the updated file, use the original content
+          console.log('Using original content due to:', error.message);
+          emailTemplates = originalEmailContent;
+        }
+        
+        // Create rows based on all emails from the sheet
+        const formattedRows = sheetEmails.map((email, index) => ({
+          id: index + 1,
+          email,
+          // Use template if available, otherwise use a default template or empty string
+          text: emailTemplates[email] || emailTemplates[Object.keys(emailTemplates)[0]] || '',
+          // Include job description
+          jobDescription: jobDescs[email] || ''
+        }));
+        
+        setRows(formattedRows);
       } catch (error) {
-        console.error('Error fetching job descriptions:', error);
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    initializeContent();
-    fetchJobDescriptions();
+    fetchAllData();
   }, []);
 
   const handleUndo = (id) => {
@@ -114,27 +117,33 @@ function App() {
           {saveStatus}
         </div>
       )}
-      {rows.map((row) => (
-        <div key={row.id} className="row">
-          <p>{row.email}</p>
-          <div className="text-field-container">
-            <EditableTextField 
-              content={row.text}
-              onChange={(newText) => handleTextChange(row.id, newText)}
-            />
-            <textarea
-              className="text-field job-description"
-              value={jobDescriptions[row.email] || ""}
-              placeholder="Job description will appear here..."
-              readOnly
-            />
+      {loading ? (
+        <div className="loading">Loading email data...</div>
+      ) : rows.length > 0 ? (
+        rows.map((row) => (
+          <div key={row.id} className="row">
+            <p>{row.email}</p>
+            <div className="text-field-container">
+              <EditableTextField 
+                content={row.text}
+                onChange={(newText) => handleTextChange(row.id, newText)}
+              />
+              <textarea
+                className="text-field job-description"
+                value={jobDescriptions[row.email] || ""}
+                placeholder="Job description will appear here..."
+                readOnly
+              />
+            </div>
+            <div className="button-container">
+              <button onClick={() => handleUndo(row.id)}>Undo</button>
+              <button onClick={handleSave}>Save</button>
+            </div>
           </div>
-          <div className="button-container">
-            <button onClick={() => handleUndo(row.id)}>Undo</button>
-            <button onClick={handleSave}>Save</button>
-          </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <div className="no-data">No emails found. Please check your Google Sheet.</div>
+      )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ let lastFetchTime = 0;
 const CACHE_DURATION = 60 * 1000; // 1 minute cache
 
 /**
- * Fetches all job descriptions from Google Sheets
+ * Fetches all data from Google Sheets and ensures proper alignment
  * @returns {Object} - Mapping of email addresses to job descriptions
  */
 export async function getAllJobDescriptions() {
@@ -38,9 +38,35 @@ export async function getAllJobDescriptions() {
   }
   
   try {
+    // First, get the headers to identify the correct columns
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: "Sheet1!A1:Z1" // Get the first row to identify column positions
+    });
+    
+    const headers = headerResponse.data.values[0] || [];
+    
+    // Find the indices of email and job description columns
+    let emailColIndex = -1;
+    let jobDescColIndex = -1;
+    
+    headers.forEach((header, index) => {
+      const headerText = String(header).toLowerCase();
+      if (headerText.includes('email')) {
+        emailColIndex = index;
+      } else if (headerText.includes('job') && (headerText.includes('description') || headerText.includes('desc'))) {
+        jobDescColIndex = index;
+      }
+    });
+    
+    // If we couldn't find the right columns, fall back to default indices
+    if (emailColIndex === -1) emailColIndex = 1; // Column B
+    if (jobDescColIndex === -1) jobDescColIndex = 3; // Column D
+    
+    // Now get all data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: "Sheet1!A:D" // Get columns A through D to include emails and descriptions
+      range: "Sheet1!A2:Z" // Get all columns from row 2 onwards
     });
     
     const rows = response.data.values;
@@ -48,11 +74,22 @@ export async function getAllJobDescriptions() {
       return {};
     }
 
-    // Create a mapping of email addresses (column B, index 1) to job descriptions (column D, index 3)
+    console.log(`Using email column: ${emailColIndex + 1}, job description column: ${jobDescColIndex + 1}`);
+    
+    // Create a mapping of email addresses to job descriptions
     const jobDescriptions = {};
-    rows.forEach(row => {
-      if (row.length >= 4 && row[1]) {
-        jobDescriptions[row[1]] = row[3] || ""; // Map email to job description (4th column)
+    rows.forEach((row, rowIndex) => {
+      if (row.length > Math.max(emailColIndex, jobDescColIndex)) {
+        const email = row[emailColIndex]?.trim();
+        const jobDescription = row[jobDescColIndex] || "";
+        
+        // Only add if email is valid
+        if (email && email.includes('@')) {
+          // Log for debugging
+          console.log(`Row ${rowIndex + 2}: Mapping ${email} to job description`);
+          
+          jobDescriptions[email] = jobDescription;
+        }
       }
     });
     
