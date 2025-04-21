@@ -1,184 +1,231 @@
+/* Modern CSS Reset and Base Styles */
 #root {
-  max-width: 1280px;
-  margin: 0 0;
-  padding: 2rem;
-  text-align: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  background-color: #f5f7fa;
+  box-sizing: border-box;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f5f7fa;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
+/* Modern App Container */
 .app-container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center horizontally */
-  height: 100vh; /* Full viewport height */
-  margin: 0 auto; /* Center horizontally in case of extra width */
-  width: 90vw; /* Full device width */
-  padding: 1rem 0; /* Remove horizontal padding */
-  box-sizing: border-box; /* Include padding in width calculation */
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+  overflow-x: hidden;
 }
 
+/* Email Row Card Design */
 .row {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  border: 1px solid #ccc;
-  padding: 1rem;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  overflow-y: visible; /* Remove scrollable behavior for rows */
-  width: 90%; /* Adjust width to fit nicely in the center */
-  max-width: 100vw; /* Limit maximum width */
+  gap: 1rem;
+  border: none;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Added alternate row styling with different shades of grey */
-.row:nth-child(odd) {
-  background-color: #f0f0f0; /* Light grey for odd rows */
+.row:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.row:nth-child(even) {
-  background-color: #e0e0e0; /* Slightly darker grey for even rows */
+/* Email Address Header */
+.row p {
+  color: #1a73e8;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e6effd;
 }
 
-/* Updated the text-field to render HTML content in a formatted manner */
-.text-field {
-  margin: 0; /* Remove any margin */
-  padding: 0.5rem; /* Keep padding for usability */
-  width: 100%; /* Adjust to parent width */
-  min-height: 150px; /* Set a minimum height */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-  box-sizing: border-box; /* Include padding in width calculation */
-  max-height: calc(100vh - 20px); /* Prevent the text field from exceeding the viewport height */
-  overflow-y: auto; /* Allow scrolling within the text field */
-  background-color: #fff; /* Ensure a white background for readability */
-  text-align: left; /* Ensure text is left-aligned */
-  font-family: Arial, sans-serif; /* Use a standard email font */
-  line-height: 1.5; /* Improve readability with better line spacing */
-}
-
-/* Added styles for rendering HTML content inside the text field */
-.text-field[contenteditable="true"] {
-  white-space: pre-wrap; /* Preserve whitespace and line breaks */
-  word-wrap: break-word; /* Break long words */
-  text-align: left; /* Ensure content is left-aligned */
-}
-
-/* Style for email content rendered in the editable field */
-.text-field[contenteditable="true"] p {
-  margin: 0 0 1em 0; /* Add paragraph spacing like in emails */
-  padding: 0; /* Remove default padding */
-  text-align: left; /* Ensure paragraphs are left-aligned */
-}
-
-/* Style for breaks in email content */
-.text-field[contenteditable="true"] br {
-  display: block; /* Ensure line breaks work properly */
-  content: ""; /* Required for some browsers */
-  margin-top: 0.5em; /* Add spacing between paragraphs */
-}
-
-/* Added a specific rule for the first text field to prevent it from going outside the scrollable area */
-.row:first-child .text-field {
-  position: relative;
-  top: 0; /* Ensure it stays within the visible area */
-  max-height: calc(100vh - 20px); /* Prevent it from exceeding the viewport height */
-  overflow-y: auto; /* Allow scrolling within the text field */
-}
-
-/* Updated the text-field-container to align text fields horizontally */
+/* Text Fields Container */
 .text-field-container {
-  display: flex;
-  flex-direction: row; /* Align items horizontally */
-  gap: 1rem; /* Add spacing between the text fields */
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.5rem;
+  width: 100%;
 }
 
+/* Text Field Styling */
+.text-field {
+  margin: 0;
+  padding: 1rem;
+  width: 100%;
+  min-height: 180px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  font-size: 1rem;
+  line-height: 1.6;
+  box-sizing: border-box;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.text-field:focus, 
+.text-field[contenteditable="true"]:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+/* Email Content Field Specific Styling */
+.text-field[contenteditable="true"] {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: left;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fffffe;
+  padding: 1.2rem;
+  border-left: 4px solid #4285f4;
+  overflow-x: hidden;
+}
+
+/* Job Description Field Styling */
+textarea.job-description {
+  background-color: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #555;
+  resize: none;
+  border-left: 4px solid #34a853;
+}
+
+/* Saved Content Display */
+.saved-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #e8f5e9;
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  text-align: center;
+  padding: 2rem 1rem;
+  min-height: 180px;
+}
+
+.saved-message {
+  font-size: 1.1rem;
+  color: #2e7d32;
+  font-weight: 500;
+  margin: 0 0 1.2rem 0;
+}
+
+/* Button Container */
 .button-container {
   display: flex;
-  justify-content: space-between;
-  gap: 0.5rem; /* Add spacing between buttons */
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  width: 100%;
 }
 
+/* Button Styling */
 button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
 }
 
 button:hover {
-  background-color: #e0e0e0;
+  transform: translateY(-2px);
 }
 
-button:nth-child(1) {
-  border: 1px solid #ffd700; /* Yellow border */
-  background-color: #fffacd; /* Light yellow tint */
+button:active {
+  transform: translateY(0);
 }
 
-button:nth-child(2) {
-  background-color: #90ee90; /* Light green tint */
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* Regenerate button styling */
+/* Save Button */
+.save-button {
+  background-color: #4285f4;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #3367d6;
+  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+/* Regenerate Button */
 .regenerate-button {
-  border: 1px solid #6495ed; /* Blue border */
-  background-color: #e6f0ff; /* Light blue tint */
-  color: #0066cc;
+  background-color: #34a853;
+  color: white;
 }
 
 .regenerate-button:hover {
-  background-color: #cce0ff; /* Slightly darker blue on hover */
+  background-color: #2d9249;
+  box-shadow: 0 4px 8px rgba(52, 168, 83, 0.3);
 }
 
+/* Edit Again Button */
+.edit-again-button {
+  background-color: #fbbc05;
+  color: #3c4043;
+  font-weight: 500;
+}
+
+.edit-again-button:hover {
+  background-color: #f9ab00;
+  box-shadow: 0 4px 8px rgba(251, 188, 5, 0.3);
+}
+
+/* Status Message */
 .save-status {
   position: fixed;
   top: 20px;
   right: 20px;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 8px;
   font-weight: 500;
   z-index: 1000;
-  animation: fadeOut 3s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideInAndFade 3s ease-in-out;
 }
 
 .save-status.success {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
 }
 
@@ -187,41 +234,57 @@ button:nth-child(2) {
   color: white;
 }
 
-@keyframes fadeOut {
-  0% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Styling for the saved content message that replaces the text box */
-.saved-content {
+/* Loading State */
+.loading {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f0f8ff; /* Light blue background */
-  border: 1px solid #4caf50; /* Green border to indicate success */
+  height: 200px;
+  width: 100%;
+  font-size: 1.2rem;
+  color: #4285f4;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.no-data {
   text-align: center;
+  padding: 3rem;
+  color: #5f6368;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 90%;
+  max-width: 600px;
 }
 
-.saved-message {
-  font-size: 16px;
-  color: #4caf50;
-  font-weight: 500;
-  margin: 0 0 15px 0;
+/* Animations */
+@keyframes slideInAndFade {
+  0% { opacity: 0; transform: translateX(20px); }
+  10% { opacity: 1; transform: translateX(0); }
+  70% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(20px); }
 }
 
-.edit-again-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.edit-again-button:hover {
-  background-color: #45a049;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .text-field-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .row {
+    padding: 1rem;
+    width: 95%;
+  }
+  
+  .button-container {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    margin-bottom: 0.5rem;
+    flex: 1 0 auto;
+  }
 }

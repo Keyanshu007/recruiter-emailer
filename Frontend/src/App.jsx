@@ -91,24 +91,6 @@ function App() {
     fetchAllData();
   }, []);
 
-  const handleUndo = (id) => {
-    setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.id === id ? { ...row, text: originalEmailContent[row.email] } : row
-      )
-    );
-
-    setRows(prevRows => {
-      const row = prevRows.find(r => r.id === id);
-      if (row) {
-        const newSavedEmails = new Set(savedEmails);
-        newSavedEmails.delete(row.email);
-        setSavedEmails(newSavedEmails);
-      }
-      return prevRows;
-    });
-  };
-
   const handleSaveEmail = async (id, email, content) => {
     setSaving(prev => ({ ...prev, [email]: true }));
     const jsonData = { [email]: content };
@@ -256,10 +238,10 @@ function App() {
               />
             </div>
             <div className="button-container">
-              <button onClick={() => handleUndo(row.id)}>Undo</button>
               <button 
                 onClick={() => handleSaveEmail(row.id, row.email, row.text)}
                 disabled={saving[row.email]}
+                className="save-button"
               >
                 {saving[row.email] ? 'Saving...' : 'Save'}
               </button>
