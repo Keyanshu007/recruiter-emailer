@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cors from 'cors';
+import { getAllJobDescriptions, getJobDescriptionForEmail } from './modules/sheetMapping.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,6 +24,29 @@ app.post('/api/save-content', async (req, res) => {
   } catch (error) {
     console.error('Error saving file:', error);
     res.status(500).json({ error: 'Failed to save content' });
+  }
+});
+
+// New endpoint to fetch all job descriptions from Google Sheet
+app.get('/api/job-descriptions', async (req, res) => {
+  try {
+    const jobDescriptions = await getAllJobDescriptions();
+    res.json(jobDescriptions);
+  } catch (error) {
+    console.error('Error fetching job descriptions:', error);
+    res.status(500).json({ error: 'Failed to fetch job descriptions' });
+  }
+});
+
+// New endpoint to fetch a specific job description by email
+app.get('/api/job-description/:email', async (req, res) => {
+  try {
+    const email = req.params.email;
+    const jobDescription = await getJobDescriptionForEmail(email);
+    res.json({ description: jobDescription });
+  } catch (error) {
+    console.error('Error fetching job description:', error);
+    res.status(500).json({ error: 'Failed to fetch job description' });
   }
 });
 

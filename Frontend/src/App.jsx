@@ -6,6 +6,7 @@ import originalEmailContent from '../../email_content_mapping.json';
 function App() {
   const [rows, setRows] = useState([]);
   const [saveStatus, setSaveStatus] = useState('');
+  const [jobDescriptions, setJobDescriptions] = useState({});
 
   useEffect(() => {
     const initializeContent = async () => {
@@ -33,12 +34,28 @@ function App() {
         emails.map((email, index) => ({ 
           id: index + 1, 
           email, 
-          text: content[email] 
+          text: content[email],
+          jobDescription: '' // Initialize with empty job description
         }))
       );
     };
 
+    // Fetch job descriptions from the server
+    const fetchJobDescriptions = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/job-descriptions');
+        if (!response.ok) {
+          throw new Error('Failed to fetch job descriptions');
+        }
+        const data = await response.json();
+        setJobDescriptions(data);
+      } catch (error) {
+        console.error('Error fetching job descriptions:', error);
+      }
+    };
+
     initializeContent();
+    fetchJobDescriptions();
   }, []);
 
   const handleUndo = (id) => {
@@ -106,9 +123,9 @@ function App() {
               onChange={(newText) => handleTextChange(row.id, newText)}
             />
             <textarea
-              className="text-field empty-text-field"
-              value=""
-              placeholder="Add content here..."
+              className="text-field job-description"
+              value={jobDescriptions[row.email] || ""}
+              placeholder="Job description will appear here..."
               readOnly
             />
           </div>
