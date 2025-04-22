@@ -109,7 +109,7 @@ function formatEmailWithSignature(name, content, isCustom) {
       <td>
         <div style="margin-bottom: 10px;">Dear ${name},</div>
         
-        <div style="margin-bottom: 20px;">${emailBody.replace(/<br><br>/g, '</div><div style="margin-bottom: 20px;">')}</div>
+        <div style="margin-bottom: 20px;">${emailBody.replace(/<br>/g, '</div><div style="margin-bottom: 20px;">')}</div>
         
         <!-- This non-breaking space helps prevent Gmail from detecting the signature -->
         <div style="margin-top: 10px;">&nbsp;</div>
@@ -119,9 +119,9 @@ function formatEmailWithSignature(name, content, isCustom) {
           <span style="display: inline-block;">Regards,</span>
         </div>
         <div style="margin-top: 5px;">
-          <span style="display: inline-block; font-weight: 500;">Keyanshu Gariba</span> |
-          <span style="display: inline-block;">+1 (857) 492-8869</span> |
-          <a href="https://www.linkedin.com/in/keyanshu/" style="color: #0077B5; text-decoration: underline;">LinkedIn Profile</a>
+          <span style="display: inline-block; font-weight: 500;">Keyanshu Gariba</span> <br><span style="color: #ffffff;">.</span>
+          <span style="display: inline-block;">+1 (857) 492-8869</span> <br><span style="color: #ffffff; visibility: hidden;">.</span>
+          <a href="https://www.linkedin.com/in/keyanshu/" style="color: #0077B5; text-decoration: underline;">LinkedIn Profile</a> 
         </div>
       </td>
     </tr>

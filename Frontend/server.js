@@ -134,8 +134,39 @@ app.post('/api/send-emails', async (req, res) => {
   try {
     console.log('Starting email sending process...');
     
-    // Execute the sendEmails.js script with the absolute path
-    const sendEmailsPath = 'C:\\Users\\keyan\\OneDrive\\Documents\\recruiter-emailer\\sendEmails.js';
+    // Read the original email mappings first (if they exist)
+    let emailContent = {};
+    try {
+      const originalEmailPath = join(dirname(__dirname), 'email_content_mapping.json');
+      const emailContentRaw = await readFile(originalEmailPath, 'utf8');
+      emailContent = JSON.parse(emailContentRaw);
+      console.log(`Successfully read ${Object.keys(emailContent).length} email templates from original mapping`);
+    } catch (error) {
+      console.error('Error reading original email mapping:', error);
+      emailContent = {};
+    }
+    
+    // Ensure the updated email file exists with all current email content
+    const updatedFilePath = join(__dirname, 'email_content_mapping_updated.json');
+    let updatedEmailContent = {};
+    
+    try {
+      const updatedEmailRaw = await readFile(updatedFilePath, 'utf8');
+      updatedEmailContent = JSON.parse(updatedEmailRaw);
+      console.log(`Successfully read ${Object.keys(updatedEmailContent).length} emails from updated mapping`);
+    } catch (error) {
+      console.log('No existing updated email content found or error reading file.');
+    }
+    
+    // Merge the original content with any updates, prioritizing updates
+    const mergedContent = { ...emailContent, ...updatedEmailContent };
+    
+    // Save the merged content to the updated file
+    await writeFile(updatedFilePath, JSON.stringify(mergedContent, null, 2));
+    console.log(`Successfully saved ${Object.keys(mergedContent).length} emails to updated mapping file`);
+    
+    // Now execute the sendEmails.js script
+    const sendEmailsPath = join(dirname(__dirname), 'sendEmails.js');
     console.log(`Attempting to execute: node ${sendEmailsPath}`);
     
     const nodeProcess = spawn('node', [sendEmailsPath]);
