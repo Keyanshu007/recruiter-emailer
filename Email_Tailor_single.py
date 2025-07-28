@@ -25,7 +25,7 @@ def generate_tailored_email(recruiter):
     resume_text = ""
     try:
         import pdfplumber
-        with pdfplumber.open("KeyanshuGariba_Resume.pdf") as pdf:
+        with pdfplumber.open("Hitesh Soneta.pdf") as pdf:
             for page in pdf.pages:
                 resume_text += page.extract_text() + "\n"
     except Exception as e:
@@ -48,10 +48,11 @@ def generate_tailored_email(recruiter):
     Here is the candidate's resume:
     {resume_text}
 
-    Write a professional, personalized email highlighting relevant skills from the resume that specifically match the job description. Keep it like this email "I hope this email finds you well. My name is Keyanshu Gariba, and I am a graduate student at Northeastern University (Boston campus), set to graduate this May. With a strong background in software engineering, including Full Stack Development, Database Management, and Generative AI, I am eager to apply my skills and knowledge in a professional setting.<br><br>
-      I would greatly appreciate your consideration for any open Software Development or Data Engineering positions within your organization. I have attached my resume for your reference and would be happy to provide any additional information if needed.<br><br>
-      Thank you for your time and consideration. I look forward to the opportunity to connect.<br><br>
-      Regards,<br>"
+    Write a professional, personalized email highlighting relevant skills from the resume that specifically match the job description. Keep it like this email "I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
+  
+  I’d love to explore any suitable opportunities at <include company name here> . My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
+  
+  Looking forward to your thoughts!"
     Include a brief introduction, mention specific qualifications which are written under section "Preferred Qualification" and experiences from the resume that match the job requirements, and a polite request to consider for the position.
     Keep the email concise, professional, and under 120 words. Format as HTML, Also dont start email with "'''html/n" or any other way of by writing html directly start with the email in the beginning with line breaks <br><br> between paragraphs.
     Don't include a subject line or signature section as they will be added separately.Dont include the Regards part asawll, Also just give me the body of the email no other extra words from your end are required.
@@ -85,11 +86,12 @@ def generate_tailored_email(recruiter):
 # Generate fallback email
 def generate_fallback_email(recruiter):
     return f"""
-    Dear {recruiter['Name']},<br><br>
-    I hope this email finds you well. My name is Keyanshu Gariba, and I am a graduate student at Northeastern University (Boston campus), set to graduate this May.<br><br>
-    With a strong background in software engineering, including Full Stack Development, Database Management, and Generative AI, I am eager to apply my skills and knowledge in a professional setting at {recruiter['Company']}.<br><br>
-    I would greatly appreciate your consideration for any open Software Development or Data Engineering positions within your organization. I have attached my resume for your reference and would be happy to provide any additional information if needed.<br><br>
-    Thank you for your time and consideration. I look forward to the opportunity to connect.
+    Dear {recruiter['Name']},<br>
+    I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
+  
+  I’d love to explore any suitable opportunities at your company. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
+  
+  Looking forward to your thoughts!
     """
 
 def main():

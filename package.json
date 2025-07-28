@@ -14,7 +14,7 @@
     "frontend": "concurrently \"cd Frontend && vite\" \"cd Frontend && node server.js\" \"python Email_Tailor.py\"",
     "run-all": "concurrently \"cd Frontend && vite\" \"cd Frontend && node server.js\" \"python Email_Tailor.py\"",
     "python-only": "python Email_Tailor.py",
-    "python-then-frontend": "node run-sequence.js",
+    "full": "node run-sequence.js",
     "build": "cd Frontend && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

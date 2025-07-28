@@ -48,7 +48,7 @@ function loadTailoredEmailContent() {
       console.log('Checking alternative path...');
       
       // Try an alternative path as fallback
-      const altPath = 'C:\\Users\\keyan\\OneDrive\\Documents\\recruiter-emailer\\Frontend\\email_content_mapping_updated.json';
+      const altPath = 'C:\Users\hites\Documents\recruiter-emailer\Frontend\email_content_mapping_updated.json';
       console.log(`Checking alternative path: ${altPath}`);
       
       if (fs.existsSync(altPath)) {
@@ -109,19 +109,17 @@ function formatEmailWithSignature(name, content, isCustom) {
       <td>
         <div style="margin-bottom: 10px;">Dear ${name},</div>
         
-        <div style="margin-bottom: 20px;">${emailBody.replace(/<br>/g, '</div><div style="margin-bottom: 20px;">')}</div>
+        <div style="margin-bottom: 20px;">${emailBody.replace(/<br>/g, '</div><div style="margin-bottom: 5px;">')}</div>
         
         <!-- This non-breaking space helps prevent Gmail from detecting the signature -->
-        <div style="margin-top: 10px;">&nbsp;</div>
+        <div style="margin-top: 2px;">&nbsp;</div>
         
         <!-- Signature with non-standard formatting to avoid Gmail's signature detection -->
-        <div style="margin-top: 15px;">
+        <div style="margin-top: 5px;">
           <span style="display: inline-block;">Regards,</span>
         </div>
         <div style="margin-top: 5px;">
-          <span style="display: inline-block; font-weight: 500;">Keyanshu Gariba</span> <br><span style="color: #ffffff;">.</span>
-          <span style="display: inline-block;">+1 (857) 492-8869</span> <br><span style="color: #ffffff; visibility: hidden;">.</span>
-          <a href="https://www.linkedin.com/in/keyanshu/" style="color: #0077B5; text-decoration: underline;">LinkedIn Profile</a> 
+          <span style="display: inline-block; font-weight: 500;">Hitesh Soneta</span>  
         </div>
       </td>
     </tr>
@@ -162,13 +160,13 @@ async function loadRecruitersFromSheet() {
   }
 }
 
-// Function to load already sent emails from the "k_done" sheet
+// Function to load already sent emails from the "h_done" sheet
 async function loadSentEmails() {
   try {
     // Adjust the range as needed. Here we assume email addresses are in column B.
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: "k_done!B:B" // Change "k_done" if your tab has a different name.
+      range: "h_done!B:B" // Change "h_done" if your tab has a different name.
     });
     const rows = response.data.values;
     const sentEmails = new Set();
@@ -187,7 +185,7 @@ async function loadSentEmails() {
   }
 }
 
-// Function to transfer successful emails to k_done sheet and remove from current sheet
+// Function to transfer successful emails to h_done sheet and remove from current sheet
 async function transferAndRemoveFromSheet(recruiter, rowIndex, isDuplicate = false) {
   try {
     let rowData = [];
@@ -219,10 +217,10 @@ async function transferAndRemoveFromSheet(recruiter, rowIndex, isDuplicate = fal
     }
 
     if (!isDuplicate) {
-      // Append the data to k_done sheet
+      // Append the data to h_done sheet
       await sheets.spreadsheets.values.append({
         spreadsheetId: GOOGLE_SHEET_ID,
-        range: "k_done!A:Z", // Assuming columns A to Z, adjust as needed
+        range: "h_done!A:Z", // Assuming columns A to Z, adjust as needed
         valueInputOption: "USER_ENTERED",
         insertDataOption: "INSERT_ROWS",
         resource: {
@@ -232,12 +230,12 @@ async function transferAndRemoveFromSheet(recruiter, rowIndex, isDuplicate = fal
     }
 
     if (!isDuplicate) {
-      console.log(`Successfully transferred ${recruiter.Email} to k_done sheet.`);
+      console.log(`Successfully transferred ${recruiter.Email} to h_done sheet.`);
     } else {
       console.log(`Duplicate email ${recruiter.Email} was not transferred.`);
     }
   } catch (error) {
-    console.error(`Error transferring ${recruiter.Email} to k_done sheet:`, error);
+    console.error(`Error transferring ${recruiter.Email} to h_done sheet:`, error);
   }
 }
 
@@ -269,21 +267,24 @@ async function sendEmail(recruiter, rowIndex, sentEmails, tailoredEmails) {
     body = formatEmailWithSignature(Name, tailoredEmails[Email], true);
     console.log(`Using tailored email content for ${Email}`);
   } else {
-    const defaultContent = `I hope this email finds you well. My name is Keyanshu Gariba, and I am a graduate student at Northeastern University (Boston campus), set to graduate this May. With a strong background in software engineering, including Full Stack Development, Database Management, and Generative AI, I am eager to apply my skills and knowledge in a professional setting.<br><br>
-I would greatly appreciate your consideration for any open Software Development or Data Engineering positions within your organization. I have attached my resume for your reference and would be happy to provide any additional information if needed.`;
+    const defaultContent = `I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
+  
+  I’d love to explore any suitable opportunities at ${Company}. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
+  
+  Looking forward to your thoughts!`;
     body = formatEmailWithSignature(Name, defaultContent, false);
     console.log(`No tailored content found for ${Email}, using default template.`);
   }
 
   const mailOptions = {
-    from: `"Keyanshu Gariba" <${EMAIL_USER}>`,
+    from: `"Hitesh Soneta" <${EMAIL_USER}>`,
     to: Email,
     subject: subject,
     html: body,
     attachments: [
       {
-        filename: "KeyanshuGariba_Resume.pdf",
-        path: path.join(__dirname, "KeyanshuGariba_Resume.pdf"),
+        filename: "Hitesh Soneta.pdf",
+        path: path.join(__dirname, "Hitesh Soneta.pdf"),
       },
     ],
   };
@@ -292,7 +293,7 @@ I would greatly appreciate your consideration for any open Software Development 
     await transporter.sendMail(mailOptions);
     console.log(`Email sent to ${Email} (${Company})`);
     
-    // After successfully sending the email, transfer it to k_done sheet and remove from Sheet1
+    // After successfully sending the email, transfer it to h_done sheet and remove from Sheet1
     await transferAndRemoveFromSheet(recruiter, rowIndex);
     
     // Add the email to the sentEmails Set to avoid duplicates in the current run
@@ -307,7 +308,7 @@ function clearEmailContentFile() {
   try {
     // Try both possible paths to the file
     const filePath = path.join(__dirname, 'Frontend', 'email_content_mapping_updated.json');
-    const altPath = 'C:\\Users\\keyan\\OneDrive\\Documents\\recruiter-emailer\\Frontend\\email_content_mapping_updated.json';
+    const altPath = 'C:\Users\hites\Documents\recruiter-emailer\Frontend\email_content_mapping_updated.json';
     
     // Check which path exists and clear that file
     if (fs.existsSync(filePath)) {
