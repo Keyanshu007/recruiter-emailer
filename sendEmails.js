@@ -112,10 +112,10 @@ function formatEmailWithSignature(name, content, isCustom) {
         <div style="margin-bottom: 20px;">${emailBody.replace(/<br>/g, '</div><div style="margin-bottom: 5px;">')}</div>
         
         <!-- This non-breaking space helps prevent Gmail from detecting the signature -->
-        <div style="margin-top: 2px;">&nbsp;</div>
+        <div style="margin-top: 0px;">&nbsp;</div>
         
         <!-- Signature with non-standard formatting to avoid Gmail's signature detection -->
-        <div style="margin-top: 5px;">
+        <div style="margin-top: 0px;">
           <span style="display: inline-block;">Regards,</span>
         </div>
         <div style="margin-top: 5px;">

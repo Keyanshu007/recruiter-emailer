@@ -123,17 +123,16 @@ recruiter-emailer/
         The "client_email" value is your GOOGLE_SERVICE_ACCOUNT_EMAIL.
         The "private_key" value is your GOOGLE_PRIVATE_KEY.
 
-   f. DEEPSEEK_API_KEY=your-deepseek-api-key
-    --> To get a DeepSeek API key:
-        Go to DeepSeek's website - https://platform.deepseek.com
+   f. GEMINI_API_KEY=your-gemini-api-key
+    --> To get a Gemini API key:
+        Go to Google AI Studio - https://aistudio.google.com/
         Sign up for an account if you don't have one
         Generate an API key:
 
-        Navigate to your account settings or API section
-        Look for "API Keys" or "Developer" section
-        Click on "Create new API key" or similar option
-        Name your key (optional, but helpful)
-        Copy the generated key immediately (it typically starts with "sk-")
+        Navigate to your API Keys section
+        Click on "Create API Key" 
+        Copy the generated key immediately
+        Note: This is different from your GOOGLE_API_KEY
 
    g. GOOGLE_API_KEY=your-key
     --> Go to https://console.cloud.google.com/

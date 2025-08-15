@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import google.generativeai as genai
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import dotenv
@@ -63,11 +64,11 @@ def get_google_sheet_data():
         print(f"Error accessing Google Sheets: {str(e)}")
         return []
 
-# Generate tailored email content using DeepSeek API
+# Generate tailored email content using Gemini API
 def generate_tailored_email(recruiter):
-    api_key = os.getenv("DEEPSEEK_API_KEY", "")
+    api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
-        print(f"Warning: DEEPSEEK_API_KEY not found in .env file, using generic email for {recruiter['Email']}")
+        print(f"Warning: GEMINI_API_KEY not found in .env file, using generic email for {recruiter['Email']}")
         return generate_fallback_email(recruiter)
 
     job_description = recruiter['JobDescription']
@@ -86,55 +87,54 @@ def generate_tailored_email(recruiter):
         print(f"Error reading resume: {str(e)}")
         resume_text = "Resume content unavailable"
 
-    # Prepare API request
-    url = "https://api.deepseek.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
+    # Configure Gemini
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+
     prompt = f"""
-    You are creating a personalized job application email to a recruiter.
+    You are an expert career advisor writing a highly personalized and professional cold email to a recruiter.
+
+    Your task is to generate a concise and impactful email body using the following information:
 
     Recruiter's name: {recruiter['Name']}
     Company: {recruiter['Company']}
     Job description: {job_description}
+    Candidate's resume:{resume_text}
 
-    Here is the candidate's resume:
-    {resume_text}
+    Instructions:
 
-    Write a professional, personalized email highlighting relevant skills from the resume that specifically match the job description. Keep it like this email "I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
-  
-  I’d love to explore any suitable opportunities at <include company name here>. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
-  
-  Looking forward to your thoughts!"
-    Include a brief introduction, mention specific qualifications which are written under section "Preferred Qualification" and experiences from the resume that match the job requirements, and a polite request to consider for the position.
-    Keep the email concise, professional, and under 120 words. Format as HTML, Also dont start email with "'''html/n" or any other way of by writing html directly start with the email in the beginning with line breaks <br><br> between paragraphs.
-    Don't include a subject line or signature section as they will be added separately.Dont include the Regards part asawll, Also just give me the body of the email no other extra words from your end are required.
-    """
-    data = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 1000
-    }
+Write the email from a first-person perspective, using "I," "my," and "me."
+
+Write a professional and brief introduction, introducing yourself with your name and graduation details.
+
+Analyze the provided job description and my resume.
+
+From my resume, identify and highlight 1-2 specific skills and experiences that directly match the "Preferred Qualification" section of the job description. Do not simply list them; integrate them naturally into the email body.
+
+Express enthusiasm for the company and the opportunity. If company name is not present in JD, just say Your organisation.
+
+Include a clear and polite call to action, referencing the attached resume.
+
+The entire email body must be strictly under 100 words.
+Strictly bbreak it into paragraphs for readability.
+Format the output as raw HTML, using <br><br> for paragraph breaks. Do not use hyphens.
+
+Do not include a salutation like Dear <Recruiters Name>, a subject line, a signature (Regards,), or any other conversational text.
+
+Start the output directly with the first line of the email's HTML."""
+    
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-
-        if response.status_code == 402:
-            print(f"DeepSeek API requires payment for {recruiter['Email']}, using fallback email")
-            return generate_fallback_email(recruiter)
-
-        response.raise_for_status()
-        result = response.json()
-        email_content = result['choices'][0]['message']['content']
+        response = model.generate_content(prompt)
+        email_content = response.text
         return email_content
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred for {recruiter['Email']}: {str(http_err)}")
-        return generate_fallback_email(recruiter)
     except Exception as e:
-        print(f"Error generating tailored email for {recruiter['Email']}: {str(e)}")
+        error_msg = str(e)
+        if "429" in error_msg or "quota" in error_msg.lower():
+            print(f"Gemini API quota exceeded for {recruiter['Email']}, using fallback email")
+        elif "timeout" in error_msg.lower():
+            print(f"Gemini API timeout for {recruiter['Email']}, using fallback email")
+        else:
+            print(f"Error generating tailored email for {recruiter['Email']}: {error_msg}")
         return generate_fallback_email(recruiter)
 
 # Generate fallback email
