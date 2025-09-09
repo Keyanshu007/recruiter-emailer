@@ -267,7 +267,7 @@ async function sendEmail(recruiter, rowIndex, sentEmails, tailoredEmails) {
     body = formatEmailWithSignature(Name, tailoredEmails[Email], true);
     console.log(`Using tailored email content for ${Email}`);
   } else {
-    const defaultContent = `I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
+    const defaultContent = `I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduated in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
   
   I’d love to explore any suitable opportunities at ${Company}. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
   

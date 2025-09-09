@@ -51,7 +51,7 @@ def generate_tailored_email(recruiter):
 
 Write the email from a first-person perspective, using "I," "my," and "me."
 
-Write a professional and brief introduction, introducing yourself with your name and graduation details.
+Write a professional and brief introduction, introducing yourself with your name and graduation details. I have already graduated in August 2025.
 
 Analyze the provided job description and my resume.
 
@@ -87,11 +87,11 @@ Start the output directly with the first line of the email's HTML."""
 def generate_fallback_email(recruiter):
     return f"""
     Dear {recruiter['Name']},<br>
-    I hope you're doing well. My name is Hitesh Soneta, and I’m pursuing my Master’s in Computer Software Engineering at Northeastern University, graduating in August 2025. With four years of experience in software engineering, I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
-  
-  I’d love to explore any suitable opportunities at your company. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
-  
-  Looking forward to your thoughts!
+    I hope you’re doing well. My name is Hitesh Soneta, and I recently graduated with a Master’s in Computer Software Engineering from Northeastern University. I bring four years of experience in software engineering, where I’ve built full-stack applications, optimized databases, and developed data visualization solutions to drive insights.
+
+I’d love to explore any suitable opportunities at your company. My resume is attached, and I’d be happy to discuss how my skills can add value to your team.
+
+Looking forward to your thoughts.
     """
 
 def main():
